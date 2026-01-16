@@ -137,6 +137,26 @@ def setup_server_service():
     subprocess.run("./setup-server.sh", shell=True, cwd="./access-point", check=True)
 
 
+def setup_wifi_scripts():
+    print()
+    ColorPrint.print(cyan, "▶ Setup WiFi management scripts and services")
+
+    print("We will now install WiFi management scripts that allow the device to:")
+    print("- Switch from AP mode to WiFi client mode when credentials are provided")
+    print("- Automatically reconnect to saved WiFi network on boot")
+    print("- Fallback to AP mode if WiFi connection fails")
+    print("The following commands will execute as sudo user.")
+    print('Please make sure you look through the file "./access-point/setup-wifi-scripts.sh"')
+    print("first before approving.")
+    answer = query_yes_no("Continue?", default="yes")
+
+    if not answer:
+        return sys.exit(0)
+
+    subprocess.run("sudo chmod a+x ./setup-wifi-scripts.sh", shell=True, cwd="./access-point", check=True)
+    subprocess.run("./setup-wifi-scripts.sh", shell=True, cwd="./access-point", check=True)
+
+
 def done():
     print()
     ColorPrint.print(cyan, "▶ Done")
@@ -166,6 +186,7 @@ def execute_all():
     install_server_dependencies()
     build_server()
     setup_server_service()
+    setup_wifi_scripts()
 
     done()
 

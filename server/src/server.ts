@@ -1,6 +1,8 @@
 import express, { NextFunction, Request, Response } from 'express';
 import path from 'path';
 import { pong } from './pong';
+import { connectToWifi } from './wifi-connect';
+import { scanWifiNetworks } from './wifi-scan';
 
 
 ////////////////////////////// Setup ///////////////////////////////////////////
@@ -23,6 +25,9 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     next();
 });
 
+// Parse JSON bodies (must be before routes that need it)
+app.use(express.json());
+
 // Call this AFTER app.use where we do the redirects
 app.use(express.static(FRONTEND_FOLDER));
 
@@ -35,6 +40,56 @@ app.get('/', (req, res, next) => {
 });
 
 app.get('/api/ping', pong);
+
+// WiFi network scan endpoint
+app.get('/api/scan-wifi', async (req: Request, res: Response) => {
+    try {
+        const networks = await scanWifiNetworks();
+        res.json({ networks, success: true });
+    } catch (error: any) {
+        console.error('Error scanning WiFi networks:', error);
+        res.status(500).json({ 
+            error: error.message || 'Failed to scan WiFi networks',
+            networks: [],
+            success: false 
+        });
+    }
+});
+
+// WiFi connection endpoint
+app.post('/api/connect-wifi', async (req: Request, res: Response) => {
+    try {
+        const { ssid, password } = req.body;
+        
+        if (!ssid) {
+            return res.status(400).json({ error: 'SSID is required' });
+        }
+        
+        // Password is optional for open networks, but we'll pass empty string if not provided
+        const wifiPassword = password || '';
+        
+        // Call the WiFi connection script
+        const result = await connectToWifi(ssid, wifiPassword);
+        
+        if (result.success) {
+            res.json({ 
+                message: 'WiFi credentials received. The device is connecting to your network...',
+                success: true 
+            });
+        } else {
+            res.status(500).json({ 
+                error: result.error || 'Failed to configure WiFi connection',
+                success: false 
+            });
+        }
+    } catch (error: any) {
+        console.error('Error connecting to WiFi:', error);
+        res.status(500).json({ 
+            error: error.message || 'Internal server error',
+            success: false 
+        });
+    }
+});
 
 
 ///////////////////////////// Server listening /////////////////////////////////

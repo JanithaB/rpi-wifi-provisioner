@@ -20,6 +20,12 @@ Ever connected to a WiFi network in public space? You've probably been redirecte
 
 **This repo offers you a complete setup for an access point with a captive portal, but without Internet access.** Instead, you can serve a static HTML page to people connecting to your WiFi network. See my project [`raspi-captive-circle`](https://github.com/Splines/raspi-captive-circle) as a full project example where users can play a game in a captive portal together.
 
+**New Feature: WiFi Client Mode with Auto-Reconnect**
+- The captive portal now includes a WiFi setup form where users can enter their existing WiFi network credentials
+- After entering credentials, the device automatically switches from Access Point mode to WiFi client mode
+- On reboot, the device automatically attempts to reconnect to the saved WiFi network
+- If the WiFi network is unavailable or connection fails after 5 minutes, the device automatically falls back to Access Point mode
+
 You probably want to use this repo in one of these ways:
 
 - As a starting point for your own project using an access point and/or captive portal. See the installation instructions in this case. Check out my [medium post](https://dominicplein.medium.com/captive-portal-access-point-on-the-raspberry-pi-easy-setup-28a9bf72e998) to get some ideas for a project.
@@ -49,6 +55,13 @@ You probably want to use this repo in one of these ways:
   <summary><strong>Connection</strong></summary>
 
   After the installation, you should be able to connect to the new WiFi network called `Splines Raspi AP` using the password `splinesraspi`. You should be redirected to a static welcome page. If you open a "normal" browser, type in any http URL (http**s** URLs are not working) and you should also get redirected to the static page. The URL is supposed to read `splines.portal` (but visiting any URL should redirect there). From here on you can build your custom captive portal webpage by customizing the code in the `server` folder of this project.
+
+  **WiFi Setup Feature:**
+  - When connected to the Access Point, you'll see a WiFi setup form on the captive portal page
+  - Enter your existing WiFi network's SSID and password
+  - Click "Connect to WiFi" - the device will switch from AP mode to WiFi client mode
+  - After a reboot, the device will automatically reconnect to your WiFi network
+  - If the WiFi network is unavailable for more than 5 minutes, the device will automatically fall back to AP mode
 
 </details>
 

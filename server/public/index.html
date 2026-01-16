@@ -5,27 +5,157 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Splines Portal</title>
+    <title>Splines Portal - WiFi Setup</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #333;
+            margin-top: 0;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="text"],
+        input[type="password"],
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        select {
+            background-color: white;
+            cursor: pointer;
+        }
+        .scan-button {
+            background-color: #2196F3;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+            width: auto;
+        }
+        .scan-button:hover {
+            background-color: #1976D2;
+        }
+        .scan-button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .network-info {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        .manual-entry {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+        .manual-entry a {
+            color: #2196F3;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .message.info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    </style>
 </head>
 
 <body>
-    <h2>Yeah, this is the welcome screen, you've made it 🙌</h2>
+    <div class="container">
+        <h2>WiFi Network Setup</h2>
+        <p>Enter your WiFi network credentials to connect this device to your network.</p>
 
-    <p>
-        Have a lot of fun with your own project.<br>
+        <form id="wifi-form">
+            <div class="form-group">
+                <label for="ssid">WiFi Network Name (SSID):</label>
+                <select id="ssid" name="ssid" required>
+                    <option value="">Scanning for networks...</option>
+                </select>
+                <button type="button" id="scan-btn" class="scan-button">Scan for Networks</button>
+                <div id="network-info" class="network-info"></div>
+                <div class="manual-entry">
+                    <a id="manual-toggle" href="#">Enter network name manually</a>
+                </div>
+                <input type="text" id="ssid-manual" name="ssid-manual" style="display: none;" placeholder="Enter WiFi network name">
+            </div>
 
-        Feel free to open an issue if something is not working as expected,
-        but read the troubleshooting section first.<br>
+            <div class="form-group">
+                <label for="password">WiFi Password:</label>
+                <input type="password" id="password" name="password" placeholder="Enter WiFi password (required for secured networks)">
+            </div>
 
-        If you created a project with a captive portal based on this,
-        feel free to inform me, so that I can look into it 👍
-    </p>
+            <button type="submit" id="submit-btn">Connect to WiFi</button>
+        </form>
 
-    <p>
-        <strong>Endpoint /api/ping test: </strong>
-        <span id="api-endpoint-test">Waiting for server response...</span>
-    </p>
+        <div id="message" class="message"></div>
 
+        <p style="margin-top: 30px; font-size: 12px; color: #666;">
+            <strong>Note:</strong> After connecting, this device will switch from Access Point mode to WiFi client mode. 
+            The device will automatically reconnect to this network after reboot. If the network is unavailable, 
+            it will fall back to Access Point mode after a few minutes.
+        </p>
+    </div>
 
     <script src="index.js"></script>
 </body>
