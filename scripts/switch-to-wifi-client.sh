@@ -34,7 +34,7 @@ sed -i '/^    nohook wpa_supplicant$/d' /etc/dhcpcd.conf
 # Create wpa_supplicant configuration if it doesn't exist
 WPA_SUPPLICANT_CONF="/etc/wpa_supplicant/wpa_supplicant.conf"
 
-# Get country code from hostapd.conf if available, default to DE
+# Get country code from hostapd.conf if available, default to LK
 COUNTRY_CODE="LK"
 if [ -f "/etc/hostapd/hostapd.conf" ]; then
     HOSTAPD_COUNTRY=$(grep "^country_code=" /etc/hostapd/hostapd.conf | cut -d'=' -f2)

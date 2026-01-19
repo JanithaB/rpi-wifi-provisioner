@@ -84,7 +84,7 @@ You probably want to use this repo in one of these ways:
   - static ip for the raspi: `192.168.4.1/24`
   - using `wlan0` as interface
   - WiFi: SSID: `Splines Raspi AP`, password: `splinesraspi`,
-    <br>country code: `DE` (change if you are not in Germany)
+    <br>country code: `LK` (change if you are not in Sri Lanka)
   - Server: port: `3000` (all request on port 80 (http) get redirected to this port), host name: `splines.portal`
 
 </details>
