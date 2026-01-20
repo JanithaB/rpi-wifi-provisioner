@@ -10,20 +10,22 @@ A complete WiFi captive portal and access point setup for Raspberry Pi, allowing
 
 ✨ **Complete Access Point Setup** - Turn your Raspberry Pi into a WiFi hotspot  
 🌐 **Captive Portal** - Automatic web portal when devices connect  
-📱 **Mobile-Friendly UI** - Clean, modern web interface  
-🔒 **Secure & Open Networks** - Supports both WPA2 and open WiFi networks  
-⚡ **Auto-Detection** - Automatically detects network security type  
+📱 **Mobile-Friendly UI** - Clean, modern web interface with password visibility toggle  
+🔒 **Secure & Open Networks** - Supports both WPA2/PSK and open WiFi networks  
+⚡ **Auto-Detection** - Automatically detects network security type during scan  
 🔄 **Easy WiFi Switching** - Connect to any available WiFi network through the portal  
-💾 **Persistent Configuration** - Settings survive reboots
+💾 **Persistent Configuration** - NetworkManager saves connections for auto-reconnect  
+🖥️ **Multi-Platform Detection** - Works with Android, iOS, Windows, and Firefox captive portal detection
 
 ## What You Get
 
 When you deploy this project:
 
-1. **Access Point Mode**: Your Raspberry Pi broadcasts a WiFi network (`RPi-Setup`)
-2. **Captive Portal**: Devices connecting to the AP are redirected to a configuration page
-3. **WiFi Scanner**: Scan and connect to any available WiFi network
-4. **Automatic Switching**: Seamlessly switch between AP mode and client mode
+1. **Access Point Mode**: Your Raspberry Pi broadcasts an open WiFi network (`RPi-Setup`)
+2. **Captive Portal**: Devices connecting to the AP are automatically redirected to a configuration page
+3. **WiFi Scanner**: Real-time scan for available WiFi networks with security detection
+4. **Automatic Switching**: Seamlessly switch between AP mode and client mode using NetworkManager
+5. **Smart Password Handling**: Password field auto-shows/hides based on network security type
 
 ## Requirements
 
@@ -36,6 +38,7 @@ When you deploy this project:
 ### Software
 - **Raspberry Pi OS**: Bookworm (12) - 64-bit (tested)
 - **Python**: 3.x (pre-installed)
+- **NetworkManager**: For WiFi client mode management
 - **Network Access**: Ethernet connection recommended for initial setup
 
 ### Important Notes
@@ -48,7 +51,7 @@ When you deploy this project:
 ```bash
 cd ~/Documents
 git clone https://github.com/JanithaB/rpi-wifi-provisioner.git
-cd raspi-captive-portal
+cd rpi-wifi-provisioner
 ```
 
 ### 2. Run Initial Setup
@@ -60,25 +63,24 @@ sudo python3 setup.py
 ```
 
 This script will:
-- Install required packages (`hostapd`, `dnsmasq`, `netfilter-persistent`, etc.)
+- Install required packages (`hostapd`, `dnsmasq`, `iptables-persistent`, etc.)
 - Configure network interfaces
 - Set up the captive portal web server
 - Install scripts to `/usr/local/bin/`
-- Copy web files to `/var/www/portal/`
-- Enable and start all services
+- Copy web files and logo to `/var/www/portal/`
+- Backup dhcpcd configuration
 
 ### 3. Verify Installation
 
-After setup completes, check if services are running:
+After setup completes, the services are disabled by default. You need to manually switch to AP mode:
 
 ```bash
-# Check Access Point
+# Switch to AP mode to start all services
+sudo /usr/local/bin/switch-to-ap.sh
+
+# Then verify services are running:
 sudo systemctl status hostapd
-
-# Check DHCP/DNS
 sudo systemctl status dnsmasq
-
-# Check portal server
 ps aux | grep portal_server.py
 ```
 
@@ -96,10 +98,20 @@ sudo nano /etc/hostapd/hostapd.conf
 
 ```ini
 ssid=RPi-Setup                    # Change WiFi network name
-wpa_passphrase=raspberry123       # Change WiFi password (min 8 characters)
 channel=6                         # WiFi channel (1-11)
-country_code=US                   # Your country code
 ```
+
+**To add password protection (WPA2), uncomment and configure:**
+
+```ini
+# Uncomment these lines for WPA2 security:
+# wpa=2
+# wpa_key_mgmt=WPA-PSK
+# wpa_passphrase=raspberry123     # Change to your password (min 8 characters)
+# rsn_pairwise=CCMP
+```
+
+**Note:** The default configuration is an OPEN network (no password) for easy initial setup.
 
 ### DHCP/DNS Settings
 
@@ -134,13 +146,17 @@ sudo ip addr add 192.168.5.1/24 dev wlan0
 
 #### Change Logo
 
-Replace the logo file:
+Replace the default logo with your own:
 
 ```bash
+# Replace with your custom logo
 sudo cp /path/to/your/logo.png /var/www/portal/logo.png
 ```
 
-Logo should be 500x500px PNG format for best results.
+Logo specifications:
+- **Recommended size**: 120x120px or larger (square format)
+- **Format**: PNG with transparency support
+- **Display**: Shown as 120x120px rounded square in the portal
 
 #### Customize Web Interface
 
@@ -174,14 +190,14 @@ This will:
 
 **Access Point Details:**
 - **SSID**: RPi-Setup
-- **Password**: raspberry123
+- **Security**: OPEN (No Password Required)
 - **IP Address**: 192.168.5.1
 - **Portal URL**: http://192.168.5.1
 
 ### Connect to the Portal
 
 1. **Find the Network**: Look for `RPi-Setup` in your WiFi networks
-2. **Connect**: Use password `raspberry123`
+2. **Connect**: No password required (open network)
 3. **Portal Opens**: Your device should automatically open the captive portal
 4. **Manual Access**: If not, open a browser and visit any website or http://192.168.5.1
 
@@ -215,6 +231,9 @@ This will:
 
 ### Manual WiFi Connection
 
+The system includes two WiFi connection scripts:
+
+**wifi-connect.sh** (Recommended - Uses NetworkManager):
 ```bash
 # For secured networks
 sudo /usr/local/bin/wifi-connect.sh "NetworkName" "password"
@@ -222,6 +241,14 @@ sudo /usr/local/bin/wifi-connect.sh "NetworkName" "password"
 # For open networks
 sudo /usr/local/bin/wifi-connect.sh "NetworkName" --open
 ```
+
+**wifi_setup.sh** (Legacy - Uses wpa_supplicant):
+```bash
+# For secured networks only
+sudo /usr/local/bin/wifi_setup.sh "NetworkName" "password"
+```
+
+**Note:** The portal uses `wifi-connect.sh` which automatically switches to client mode and manages connections via NetworkManager.
 
 ## Architecture
 
@@ -254,18 +281,20 @@ sudo /usr/local/bin/wifi-connect.sh "NetworkName" --open
 ### File Structure
 
 ```
-raspi-captive-portal/
-├── scripts/
-│   ├── portal_server.py        # Main web server
-│   ├── switch-to-ap.sh         # Switch to AP mode
-│   ├── switch-to-client.sh     # Switch to client mode
-│   ├── wifi-connect.sh         # Connect to WiFi
+rpi-wifi-provisioner/
+├── config/
 │   ├── dnsmasq.conf            # DHCP/DNS configuration
 │   └── hostapd.conf            # Access point configuration
+├── scripts/
+│   ├── switch-to-ap.sh         # Switch to AP mode
+│   ├── switch-to-client.sh     # Switch to client mode
+│   ├── wifi-connect.sh         # Connect to WiFi (uses NetworkManager)
+│   └── wifi_setup.sh           # Legacy WiFi connection script
 ├── webpage/
-│   └── index.html              # Captive portal webpage
+│   ├── index.html              # Captive portal webpage
+│   └── portal_server.py        # Main web server
 ├── public/
-│   └── logo.png                # Portal logo
+│   └── logo.png                # Portal logo (manual install)
 ├── setup.py                    # Installation script
 └── README.md                   # This file
 ```
@@ -299,6 +328,11 @@ raspi-captive-portal/
 - **Location**: `/usr/local/bin/portal_server.py`
 - **Port**: 80
 - **Logs**: Check with `ps aux | grep portal_server`
+- **Features**: 
+  - Handles captive portal detection for Android, iOS, Windows
+  - WiFi network scanning via `/scan` endpoint
+  - Network connection via `/connect` endpoint
+  - Automatic security detection (OPEN vs SECURED networks)
 
 ## Troubleshooting
 
@@ -328,8 +362,9 @@ sudo rfkill unblock wlan
 
 ### Can't Connect to AP
 
-**Verify password:**
-- Default password is `raspberry123` (minimum 8 characters)
+**Verify network is open:**
+- Default configuration has NO password (open network)
+- If you've enabled WPA2, verify the password in `/etc/hostapd/hostapd.conf`
 
 **Check DHCP:**
 ```bash
@@ -386,7 +421,7 @@ cat /etc/NetworkManager/conf.d/unmanaged.conf
 
 **Reinstall:**
 ```bash
-cd ~/Documents/raspi-captive-portal
+cd ~/Documents/rpi-wifi-provisioner
 sudo python3 setup.py
 ```
 
@@ -486,11 +521,12 @@ ip route show
 
 ⚠️ **Important Security Notes:**
 
-1. **Change default password** in `/etc/hostapd/hostapd.conf`
-2. **Use strong passwords** (minimum 8 characters)
-3. **Don't expose the AP** to public areas without additional security
-4. **Monitor connections** regularly
+1. **Default configuration is OPEN** (no password) - Enable WPA2 security in `/etc/hostapd/hostapd.conf` for production use
+2. **To enable security**: Uncomment the WPA lines in hostapd.conf and set a strong password (minimum 8 characters)
+3. **Don't expose an open AP** to public areas without additional security measures
+4. **Monitor connections** regularly using `sudo iw dev wlan0 station dump`
 5. **Keep the system updated**: `sudo apt update && sudo apt upgrade`
+6. **Consider firewall rules** to restrict access if needed
 
 ## Uninstallation
 

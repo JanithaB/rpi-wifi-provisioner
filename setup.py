@@ -46,11 +46,14 @@ def main():
     run_command(f"sudo chmod +x /usr/local/bin/*.sh")
     run_command(f"sudo chmod +x /usr/local/bin/portal_server.py")
     
-    print("\n[6/7] Creating webpage directory...")
+    print("\n[6/8] Creating webpage directory...")
     run_command("sudo mkdir -p /var/www/portal")
     run_command(f"sudo cp {script_dir}/webpage/index.html /var/www/portal/")
     
-    print("\n[7/7] Backing up dhcpcd.conf...")
+    print("\n[7/8] Copying logo file...")
+    run_command(f"sudo cp {script_dir}/public/logo.png /var/www/portal/logo.png")
+    
+    print("\n[8/8] Backing up dhcpcd.conf...")
     run_command("sudo cp /etc/dhcpcd.conf /etc/dhcpcd.conf.backup")
     
     print("\n" + "=" * 50)
@@ -62,8 +65,12 @@ def main():
     print("\nWhen in AP mode:")
     print("  SSID: RPi-Setup")
     print("  Security: OPEN (No Password)")
+    print("  IP Address: 192.168.5.1")
     print("  Portal will auto-open when connected")
-    print("\nNote: NetworkManager will be automatically managed during mode switches")
+    print("\nNote:")
+    print("  - NetworkManager will be automatically managed during mode switches")
+    print("  - To enable WPA2 security, edit /etc/hostapd/hostapd.conf")
+    print("  - The portal supports both open and secured WiFi networks")
     print("\n")
 
 if __name__ == "__main__":
