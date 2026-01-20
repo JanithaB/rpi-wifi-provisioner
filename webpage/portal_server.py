@@ -19,6 +19,7 @@ class PortalHandler(BaseHTTPRequestHandler):
         if self.path == '/logo.png':
             self.send_response(200)
             self.send_header('Content-type', 'image/png')
+            self.send_header('Cache-Control', 'public, max-age=3600')
             self.end_headers()
             try:
                 with open('/var/www/portal/logo.png', 'rb') as f:
@@ -26,15 +27,54 @@ class PortalHandler(BaseHTTPRequestHandler):
             except Exception as e:
                 pass
         
-        # Serve portal page for any request (captive portal)
-        elif self.path == '/' or self.path == '/index.html' or \
-           self.path.startswith('/generate_204') or \
-           self.path.startswith('/hotspot-detect') or \
-           self.path.startswith('/connecttest') or \
-           self.path.startswith('/success.txt'):
-            
+        # Android captive portal detection - must return specific responses
+        elif self.path.startswith('/generate_204'):
+            # Android expects 204 No Content when internet is available
+            # Return 302 redirect to force captive portal
+            self.send_response(302)
+            self.send_header('Location', 'http://192.168.5.1/')
+            self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
+            self.send_header('Pragma', 'no-cache')
+            self.send_header('Expires', '0')
+            self.end_headers()
+        
+        # Apple captive portal detection
+        elif self.path.startswith('/hotspot-detect.html') or \
+             self.path.startswith('/library/test/success.html'):
+            # Apple expects specific HTML with "Success"
+            # Return portal instead to trigger captive portal
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
+            self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
+            self.send_header('Pragma', 'no-cache')
+            self.send_header('Expires', '0')
+            self.end_headers()
+            # Return portal page instead of success
+            try:
+                with open('/var/www/portal/index.html', 'rb') as f:
+                    self.wfile.write(f.read())
+            except Exception as e:
+                error_page = f'<html><body><h1>Portal Error</h1><p>{str(e)}</p></body></html>'
+                self.wfile.write(error_page.encode())
+        
+        # Microsoft/Windows captive portal detection
+        elif self.path.startswith('/connecttest.txt') or \
+             self.path.startswith('/ncsi.txt'):
+            # Return redirect to force captive portal
+            self.send_response(302)
+            self.send_header('Location', 'http://192.168.5.1/')
+            self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
+            self.send_header('Pragma', 'no-cache')
+            self.send_header('Expires', '0')
+            self.end_headers()
+        
+        # Serve portal page for main requests
+        elif self.path == '/' or self.path == '/index.html':
+            self.send_response(200)
+            self.send_header('Content-type', 'text/html')
+            self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
+            self.send_header('Pragma', 'no-cache')
+            self.send_header('Expires', '0')
             self.end_headers()
             try:
                 with open('/var/www/portal/index.html', 'rb') as f:
@@ -46,6 +86,9 @@ class PortalHandler(BaseHTTPRequestHandler):
         elif self.path == '/scan':
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
+            self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
+            self.send_header('Pragma', 'no-cache')
+            self.send_header('Expires', '0')
             self.end_headers()
             
             try:
@@ -107,6 +150,9 @@ class PortalHandler(BaseHTTPRequestHandler):
             # Redirect all other requests to portal
             self.send_response(302)
             self.send_header('Location', 'http://192.168.5.1/')
+            self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
+            self.send_header('Pragma', 'no-cache')
+            self.send_header('Expires', '0')
             self.end_headers()
     
     def do_POST(self):
@@ -121,6 +167,9 @@ class PortalHandler(BaseHTTPRequestHandler):
             
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
+            self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
+            self.send_header('Pragma', 'no-cache')
+            self.send_header('Expires', '0')
             self.end_headers()
             
             if ssid:

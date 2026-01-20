@@ -5,6 +5,18 @@ echo "Switching to AP Mode..."
 # Stop any existing wpa_supplicant
 sudo killall wpa_supplicant 2>/dev/null
 
+# Tell NetworkManager to stop managing wlan0
+echo "Configuring NetworkManager to ignore wlan0..."
+sudo mkdir -p /etc/NetworkManager/conf.d/
+sudo tee /etc/NetworkManager/conf.d/unmanaged.conf > /dev/null <<EOF
+[keyfile]
+unmanaged-devices=interface-name:wlan0
+EOF
+sudo systemctl reload NetworkManager
+
+# Wait for NetworkManager to release wlan0
+sleep 2
+
 # Enable IP forwarding
 sudo sysctl -w net.ipv4.ip_forward=1 > /dev/null
 
@@ -67,5 +79,5 @@ sudo /usr/local/bin/portal_server.py &
 
 echo "AP Mode activated!"
 echo "SSID: RPi-Setup"
-echo "Password: raspberry123"
+echo "Security: OPEN (No Password Required)"
 echo "Portal: http://192.168.5.1"

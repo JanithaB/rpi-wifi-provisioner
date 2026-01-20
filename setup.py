@@ -57,12 +57,13 @@ def main():
     print("Installation Complete!")
     print("=" * 50)
     print("\nUsage:")
-    print("  Switch to AP mode:     sudo switch-to-ap.sh")
-    print("  Switch to Client mode: sudo switch-to-client.sh")
+    print("  Switch to AP mode:     sudo /usr/local/bin/switch-to-ap.sh")
+    print("  Switch to Client mode: sudo /usr/local/bin/switch-to-client.sh")
     print("\nWhen in AP mode:")
     print("  SSID: RPi-Setup")
-    print("  Password: raspberry123")
+    print("  Security: OPEN (No Password)")
     print("  Portal will auto-open when connected")
+    print("\nNote: NetworkManager will be automatically managed during mode switches")
     print("\n")
 
 if __name__ == "__main__":
